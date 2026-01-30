@@ -17,12 +17,17 @@ export class AuthService {
   ) {}
 
   async validateUser(id: string, role: string): Promise<any> {
-    if (role === 'student') {
-      return await this.studentsService.findOne(id);
-    } else if (role === 'lecturer') {
-      return await this.lecturersService.findOne(id);
+    try {
+      if (role === 'student') {
+        return await this.studentsService.findOne(id);
+      } else if (role === 'lecturer') {
+        return await this.lecturersService.findOne(id);
+      }
+      return null;
+    } catch (error) {
+      this.logger.error(`Error validating user with ID ${id} and role ${role}: ${error.message}`, error.stack);
+      throw error;
     }
-    return null;
   }
 
   async registerStudent(createStudentDto: CreateStudentDto) {
@@ -39,23 +44,28 @@ export class AuthService {
 
   async loginStudent(studentNumber: string, password: string) {
     this.logger.log(`Student login attempt: ${studentNumber}`);
-    const user = await this.studentsService.findByStudentNumber(studentNumber);
-    if (!user) {
-      this.logger.warn(`Student login failed - user not found: ${studentNumber}`);
-      throw new UnauthorizedException('Invalid credentials');
+    try {
+      const user = await this.studentsService.findByStudentNumber(studentNumber);
+      if (!user) {
+        this.logger.warn(`Student login failed - user not found: ${studentNumber}`);
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        this.logger.warn(`Student login failed - invalid password: ${studentNumber}`);
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      const payload = { sub: user.id, role: 'student' };
+      const accessToken = this.jwtService.sign(payload);
+
+      this.logger.log(`Student login successful: ${user.name} (${studentNumber})`);
+      return { accessToken, user: { id: user.id, name: user.name, role: 'student' } };
+    } catch (error) {
+      this.logger.error(`Student login failed for ${studentNumber}: ${error.message}`, error.stack);
+      throw error;
     }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      this.logger.warn(`Student login failed - invalid password: ${studentNumber}`);
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const payload = { sub: user.id, role: 'student' };
-    const accessToken = this.jwtService.sign(payload);
-
-    this.logger.log(`Student login successful: ${user.name} (${studentNumber})`);
-    return { accessToken, user: { id: user.id, name: user.name, role: 'student' } };
   }
 
   async registerLecturer(createLecturerDto: CreateLecturerDto) {
@@ -72,44 +82,54 @@ export class AuthService {
 
   async loginLecturer(nuptk: string, password: string) {
     this.logger.log(`Lecturer login attempt: ${nuptk}`);
-    const user = await this.lecturersService.findByNuptk(nuptk);
-    if (!user) {
-      this.logger.warn(`Lecturer login failed - user not found: ${nuptk}`);
-      throw new UnauthorizedException('Invalid credentials');
+    try {
+      const user = await this.lecturersService.findByNuptk(nuptk);
+      if (!user) {
+        this.logger.warn(`Lecturer login failed - user not found: ${nuptk}`);
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        this.logger.warn(`Lecturer login failed - invalid password: ${nuptk}`);
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      const payload = { sub: user.id, role: 'lecturer' };
+      const accessToken = this.jwtService.sign(payload);
+
+      this.logger.log(`Lecturer login successful: ${user.name} (${nuptk})`);
+      return { accessToken, user: { id: user.id, name: user.name, role: 'lecturer' } };
+    } catch (error) {
+      this.logger.error(`Lecturer login failed for ${nuptk}: ${error.message}`, error.stack);
+      throw error;
     }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      this.logger.warn(`Lecturer login failed - invalid password: ${nuptk}`);
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const payload = { sub: user.id, role: 'lecturer' };
-    const accessToken = this.jwtService.sign(payload);
-
-    this.logger.log(`Lecturer login successful: ${user.name} (${nuptk})`);
-    return { accessToken, user: { id: user.id, name: user.name, role: 'lecturer' } };
   }
 
   async getMe(user: any) {
-    const { sub: id, role } = user;
-    let fullUser;
+    try {
+      const { sub: id, role } = user;
+      let fullUser;
 
-    if (role === 'student') {
-      fullUser = await this.studentsService.findOne(id);
-    } else if (role === 'lecturer') {
-      fullUser = await this.lecturersService.findOne(id);
-    } else {
-      throw new BadRequestException('Invalid role');
+      if (role === 'student') {
+        fullUser = await this.studentsService.findOne(id);
+      } else if (role === 'lecturer') {
+        fullUser = await this.lecturersService.findOne(id);
+      } else {
+        throw new BadRequestException('Invalid role');
+      }
+
+      if (!fullUser) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      // Exclude password from response
+      const { password, ...userWithoutPassword } = fullUser;
+      return { ...userWithoutPassword, role };
+    } catch (error) {
+      this.logger.error(`Error getting user info for ID ${user.sub}: ${error.message}`, error.stack);
+      throw error;
     }
-
-    if (!fullUser) {
-      throw new UnauthorizedException('User not found');
-    }
-
-    // Exclude password from response
-    const { password, ...userWithoutPassword } = fullUser;
-    return { ...userWithoutPassword, role };
   }
 
   createAuthCookie(accessToken: string) {

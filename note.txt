@@ -1,0 +1,5 @@
+docker compose --profile dev --env-file .env.dev up -d
+
+docker compose --profile staging --env-file .env.staging up -d
+
+docker compose --profile production --env-file .env.production up -d

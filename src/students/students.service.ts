@@ -18,10 +18,15 @@ export class StudentsService {
   ) {}
 
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
+    console.log('Creating student in service:', createStudentDto);
     try {
       const student = this.studentRepository.create(createStudentDto);
-      return await this.studentRepository.save(student);
+      console.log('Student entity created:', student);
+      const saved = await this.studentRepository.save(student);
+      console.log('Student saved:', saved);
+      return saved;
     } catch (error) {
+      console.error('Error in students service create:', error);
       if (error.code === '23505') {
         throw new ConflictException('Nomor mahasiswa sudah terdaftar');
       }

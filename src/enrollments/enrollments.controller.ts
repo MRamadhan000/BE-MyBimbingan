@@ -15,7 +15,7 @@ import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PoliciesGuard } from '../auth/guards/policies.guard';
 import { CheckPolicies } from '../auth/decorators/check-policies.decorator';
-import { ReadEnrollmentPolicyHandler, CreateEnrollmentPolicyHandler, DeleteEnrollmentPolicyHandler } from './policies/enrollment-policies';
+import { readEnrollmentPolicy, createEnrollmentPolicy, deleteEnrollmentPolicy } from './policies/enrollment-policies';
 
 @Controller('enrollments')
 @UseGuards(JwtAuthGuard, PoliciesGuard)
@@ -24,27 +24,31 @@ export class EnrollmentsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @CheckPolicies(new CreateEnrollmentPolicyHandler())
+  @CheckPolicies(createEnrollmentPolicy)
   create(@Body() createEnrollmentDto: CreateEnrollmentDto) {
-    return this.enrollmentsService.create(createEnrollmentDto);
+    const result = this.enrollmentsService.create(createEnrollmentDto);
+    return { message: 'Enrollment created successfully', data: result };
   }
 
   @Get()
-  @CheckPolicies(new ReadEnrollmentPolicyHandler())
+  @CheckPolicies(readEnrollmentPolicy)
   findAll() {
-    return this.enrollmentsService.findAll();
+    const result = this.enrollmentsService.findAll();
+    return { message: 'Enrollments retrieved successfully', data: result };
   }
 
   @Get(':id')
-  @CheckPolicies(new ReadEnrollmentPolicyHandler())
+  @CheckPolicies(readEnrollmentPolicy)
   findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.enrollmentsService.findOne(id);
+    const result = this.enrollmentsService.findOne(id);
+    return { message: 'Enrollment retrieved successfully', data: result };
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @CheckPolicies(new DeleteEnrollmentPolicyHandler())
+  @HttpCode(HttpStatus.OK)
+  @CheckPolicies(deleteEnrollmentPolicy)
   remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.enrollmentsService.remove(id);
+    this.enrollmentsService.remove(id);
+    return { message: 'Enrollment deleted successfully' };
   }
 }

@@ -42,6 +42,10 @@ export class AuthController {
     return { message: 'Login successful', data: user };
   }
 
+  @Get('student/me/oke')
+  async getStudentMeE(@Req() req: Request) {
+    return { message: 'Student data retrieved successfully'};
+  }
   @Get('student/me')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.STUDENT)

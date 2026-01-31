@@ -14,11 +14,14 @@ export class Attachment {
   @Column()
   fileName: string;
 
-  @Column()
-  fileUrl: string;
+  @Column({ type: 'bytea', nullable: true })
+  fileData: Buffer;
 
   @Column()
   fileSize: string; // Simpan "1.8 MB" agar tidak perlu hitung ulang di FE
+
+  @Column()
+  mimeType: string;
 
   @ManyToOne(() => Submission, (sub) => sub.attachments)
   submission: Submission;

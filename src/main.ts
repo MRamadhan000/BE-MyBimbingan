@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
+import { join } from 'path';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -18,6 +20,12 @@ async function bootstrap() {
   );
 
   app.use(cookieParser());
+
+  // Configure body parser for multipart/form-data
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+  // Removed static assets serving for security - files will be served via protected endpoints
 
   const logger = new Logger('Bootstrap');
   await app.listen(3000);

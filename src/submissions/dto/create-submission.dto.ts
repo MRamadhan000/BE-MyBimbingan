@@ -2,39 +2,26 @@ import {
   IsString, 
   IsNotEmpty, 
   IsUUID, 
-  IsArray, 
-  ValidateNested, 
-  IsOptional 
+  IsOptional,
+  Allow
 } from 'class-validator';
-import { Type } from 'class-transformer';
-
-// Sub-DTO untuk menangani metadata file
-class FileAttachmentDto {
-  @IsString()
-  @IsNotEmpty({ message: 'Nama file tidak boleh kosong' })
-  fileName: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'URL file harus ada' })
-  fileUrl: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'Ukuran file harus dicantumkan' })
-  fileSize: string;
-}
+import { Transform } from 'class-transformer';
 
 export class CreateSubmissionDto {
   @IsString()
   @IsNotEmpty({ message: 'Judul pengajuan harus diisi' })
+  @Transform(({ value }) => value?.trim())
   title: string;
 
   @IsString()
   @IsNotEmpty({ message: 'Summary deskripsi tidak boleh kosong' })
+  @Transform(({ value }) => value?.trim())
   description: string;
 
-  @IsUUID('4', { message: 'ID Dosen harus berupa UUID yang valid' })
+  @IsUUID('4', { message: 'ID Enrollment harus berupa UUID yang valid' })
   @IsNotEmpty()
-  lecturerId: string;
+  @Transform(({ value }) => value?.trim())
+  enrollmentId: string;
 
   /**
    * Jika field ini diisi, berarti submission ini adalah 
@@ -42,11 +29,12 @@ export class CreateSubmissionDto {
    */
   @IsUUID('4', { message: 'ID Parent harus berupa UUID yang valid' })
   @IsOptional()
+  @Transform(({ value }) => value?.trim() || undefined)
   parentId?: string;
 
-  @IsArray()
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => FileAttachmentDto)
-  files: FileAttachmentDto[];
+  // Allow files field to be present in request (handled separately by @UploadedFiles)
+  @Allow()
+  files?: any;
+
+  // Note: Files are handled separately via @UploadedFiles() in controller
 }

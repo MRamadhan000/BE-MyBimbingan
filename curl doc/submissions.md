@@ -8,44 +8,27 @@ Base URL: `http://localhost:3000`
 
 **Endpoint:** `POST /submissions`
 
-**Description:** Create a new submission. Only students can create submissions for themselves.
+**Description:** Create a new submission. Only students can create submissions for themselves. Files are stored securely in the database server. You need to get the `enrollmentId` from the enrollments endpoint first. **Important:** This endpoint requires `multipart/form-data` content type, not JSON.
 
-**Request Body:**
-```json
-{
-  "title": "Final Project Submission",
-  "description": "This is my final project submission",
-  "lecturerId": "lecturer-uuid",
-  "parentId": "parent-submission-uuid",
-  "files": [
-    {
-      "fileName": "project.pdf",
-      "fileUrl": "https://example.com/project.pdf",
-      "fileSize": "2MB"
-    }
-  ]
-}
-```
+**Request Body (Form Data):**
+- `title`: "Final Project Submission"
+- `description`: "This is my final project submission"
+- `enrollmentId`: "enrollment-uuid"
+- `parentId`: "parent-submission-uuid" (optional)
+- `files`: (multiple files, max 5MB each)
 
 **Curl Command:**
 ```bash
 curl -X POST http://localhost:3000/submissions \
-  -H "Content-Type: application/json" \
-  -b cookies.txt \
-  -d '{
-    "title": "Final Project Submission",
-    "description": "This is my final project submission",
-    "lecturerId": "lecturer-uuid",
-    "parentId": "parent-submission-uuid",
-    "files": [
-      {
-        "fileName": "project.pdf",
-        "fileUrl": "https://example.com/project.pdf",
-        "fileSize": "2MB"
-      }
-    ]
-  }'
+  -F "title=Final Project Submission" \
+  -F "description=This is my final project submission" \
+  -F "enrollmentId=enrollment-uuid" \
+  -F "files=@/path/to/file1.pdf" \
+  -F "files=@/path/to/file2.docx" \
+  -b cookies.txt
 ```
+
+**Note:** Use `-F` flags for form data, not `-d` with JSON. Files must be uploaded as multipart/form-data.
 
 **Response (Success):**
 ```json
@@ -65,9 +48,9 @@ curl -X POST http://localhost:3000/submissions \
   "attachments": [
     {
       "id": "attachment-uuid",
-      "fileName": "project.pdf",
-      "fileUrl": "https://example.com/project.pdf",
-      "fileSize": "2MB"
+      "fileName": "file1.pdf",
+      "fileSize": "2048000",
+      "mimeType": "application/pdf"
     }
   ],
   "createdAt": "2023-01-01T00:00:00.000Z"
@@ -246,6 +229,21 @@ curl -X PATCH http://localhost:3000/submissions/submission-uuid/review \
   ]
 }
 ```
+
+## Download Attachment
+
+**Endpoint:** `GET /submissions/attachments/{id}/download`
+
+**Description:** Download a specific attachment file. Access based on user role and submission ownership.
+
+**Curl Command:**
+```bash
+curl -X GET http://localhost:3000/submissions/attachments/attachment-uuid/download \
+  -b cookies.txt \
+  -o downloaded-file.pdf
+```
+
+**Response (Success):** File downloaded as attachment.
 
 ## Delete Attachment
 

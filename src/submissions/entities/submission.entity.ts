@@ -7,8 +7,7 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { Student } from '../../students/entities/student.entity';
-import { Lecturer } from '../../lecturers/entities/lecturer.entity';
+import { Enrollment } from '../../enrollments/entities/enrollment.entity';
 import { Attachment } from './attachment.entitiy';
 import { Feedback } from './feedback.entity';
 
@@ -50,11 +49,8 @@ export class Submission {
 
   // ------------------------------
 
-  @ManyToOne(() => Student, { eager: true })
-  student: Student;
-
-  @ManyToOne(() => Lecturer, { eager: true })
-  lecturer: Lecturer;
+  @ManyToOne(() => Enrollment, { eager: true })
+  enrollment: Enrollment;
 
   @OneToMany(() => Attachment, (attachment) => attachment.submission)
   attachments: Attachment[];

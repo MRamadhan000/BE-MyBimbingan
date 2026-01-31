@@ -50,6 +50,9 @@ export class AbilityFactory {
   }
 
   private defineStudentAbilities(can: any, cannot: any, user: any) {
+    // Lecturer management - students can read lecturer data
+    can(Action.Read, Lecturer);
+
     // Enrollment management - students can manage their own enrollments
     can(Action.Create, Enrollment);
     can(Action.Read, Enrollment, { studentId: user.id });
@@ -69,10 +72,13 @@ export class AbilityFactory {
 
     // Students cannot access other students' data
     cannot(Action.Read, Student).because('Students cannot access other students data');
-    cannot(Action.Manage, Lecturer).because('Students cannot manage lecturer data');
   }
 
   private defineLecturerAbilities(can: any, cannot: any, user: any) {
+    // Lecturer management - lecturers can read all lecturers, update their own profile
+    can(Action.Read, Lecturer);
+    can(Action.Update, Lecturer, { id: user.id });
+
     // Student management - lecturers can read student data
     can(Action.Read, Student);
 

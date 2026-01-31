@@ -72,6 +72,17 @@ export class LecturersService {
     }
   }
 
+  async remove(id: string): Promise<void> {
+    const lecturer = await this.getLecturerOrThrow(id);
+    
+    try {
+      await this.lecturerRepository.remove(lecturer);
+    } catch (error) {
+      this.logger.error(`Error removing lecturer with ID ${id}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat menghapus data dosen');
+    }
+  }
+
   // --- HELPER FUNCTIONS ---
 
   /**

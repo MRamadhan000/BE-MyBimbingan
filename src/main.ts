@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
-import { join } from 'path';
 import * as express from 'express';
 
 async function bootstrap() {
@@ -24,6 +23,12 @@ async function bootstrap() {
   // Configure body parser for multipart/form-data
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+  // Enable CORS
+  app.enableCors({
+    origin: 'http://localhost:3001',
+    credentials: true,
+  });
 
   // Removed static assets serving for security - files will be served via protected endpoints
 

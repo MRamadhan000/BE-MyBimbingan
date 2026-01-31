@@ -3,7 +3,8 @@ import {
   NotFoundException, 
   ConflictException, 
   InternalServerErrorException,
-  Inject
+  Inject,
+  Logger
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
@@ -18,6 +19,7 @@ import { Feedback } from '../submissions/entities/feedback.entity';
 
 @Injectable()
 export class StudentsService {
+  private readonly logger = new Logger(StudentsService.name);
   constructor(
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>,
@@ -83,8 +85,11 @@ export class StudentsService {
     const cacheKey = `student:stats:${studentId}`;
     const cachedStats = await this.cacheManager.get(cacheKey);
     if (cachedStats) {
+      this.logger.debug(`Returning cached statistics for student ${studentId}`);
       return cachedStats;
     }
+
+    this.logger.debug(`Calculating statistics for student ${studentId}`);
 
     const student = await this.findOne(studentId);
 

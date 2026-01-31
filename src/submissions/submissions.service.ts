@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -14,6 +15,8 @@ import { CreateFeedbackDto } from './dto/create-feedback.dto';
 
 @Injectable()
 export class SubmissionsService {
+  private readonly logger = new Logger(SubmissionsService.name);
+
   constructor(
     @InjectRepository(Submission)
     private readonly submissionRepo: Repository<Submission>,
@@ -81,19 +84,30 @@ export class SubmissionsService {
   }
 
   async findAll() {
-    return await this.submissionRepo.find({
-      relations: ['attachments', 'student', 'lecturer'],
-      order: { createdAt: 'DESC' },
-    });
+    try {
+      return await this.submissionRepo.find({
+        relations: ['attachments', 'student', 'lecturer'],
+        order: { createdAt: 'DESC' },
+      });
+    } catch (error) {
+      this.logger.error(`Error fetching all submissions: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat mengambil data submission');
+    }
   }
 
   async findOne(id: string) {
-    const sub = await this.submissionRepo.findOne({
-      where: { id },
-      relations: ['attachments', 'feedbacks', 'children'],
-    });
-    if (!sub) throw new NotFoundException('Data tidak ditemukan');
-    return sub;
+    try {
+      const sub = await this.submissionRepo.findOne({
+        where: { id },
+        relations: ['attachments', 'feedbacks', 'children'],
+      });
+      if (!sub) throw new NotFoundException('Data tidak ditemukan');
+      return sub;
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(`Error fetching submission with ID ${id}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat mengambil data submission');
+    }
   }
 
   // ==========================================
@@ -102,21 +116,27 @@ export class SubmissionsService {
 
   // Tambahkan di dalam class SubmissionsService
   async createFeedback(dto: CreateFeedbackDto): Promise<Feedback> {
-    const submission = await this.submissionRepo.findOne({
-      where: { id: dto.submissionId },
-    });
+    try {
+      const submission = await this.submissionRepo.findOne({
+        where: { id: dto.submissionId },
+      });
 
-    if (!submission) {
-      throw new NotFoundException('Submission tidak ditemukan');
+      if (!submission) {
+        throw new NotFoundException('Submission tidak ditemukan');
+      }
+
+      const feedback = this.feedbackRepo.create({
+        content: dto.content,
+        senderType: dto.senderType,
+        submission: submission,
+      });
+
+      return await this.feedbackRepo.save(feedback);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(`Error creating feedback for submission ${dto.submissionId}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat membuat feedback');
     }
-
-    const feedback = this.feedbackRepo.create({
-      content: dto.content,
-      senderType: dto.senderType,
-      submission: submission,
-    });
-
-    return await this.feedbackRepo.save(feedback);
   }
 
   async updateStatusAndFeedback(
@@ -124,24 +144,30 @@ export class SubmissionsService {
     status: SubmissionStatus,
     comment: string,
   ) {
-    const submission = await this.findOne(submissionId);
+    try {
+      const submission = await this.findOne(submissionId);
 
-    // Gunakan Transaction agar status berubah DAN feedback tersimpan (Atomic)
-    return await this.dataSource.transaction(async (manager) => {
-      // 1. Update Status Submission
-      submission.status = status;
-      await manager.save(submission);
+      // Gunakan Transaction agar status berubah DAN feedback tersimpan (Atomic)
+      return await this.dataSource.transaction(async (manager) => {
+        // 1. Update Status Submission
+        submission.status = status;
+        await manager.save(submission);
 
-      // 2. Tambahkan Feedback dari Dosen
-      const feedback = this.feedbackRepo.create({
-        content: comment,
-        senderType: 'LECTURER',
-        submission,
+        // 2. Tambahkan Feedback dari Dosen
+        const feedback = this.feedbackRepo.create({
+          content: comment,
+          senderType: 'LECTURER',
+          submission,
+        });
+        await manager.save(feedback);
+
+        return { message: 'Status updated and feedback sent', status };
       });
-      await manager.save(feedback);
-
-      return { message: 'Status updated and feedback sent', status };
-    });
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(`Error updating status and feedback for submission ${submissionId}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat memperbarui status dan feedback');
+    }
   }
 
   // ==========================================
@@ -149,8 +175,14 @@ export class SubmissionsService {
   // ==========================================
 
   async removeAttachment(id: string) {
-    const attachment = await this.attachmentRepo.findOne({ where: { id } });
-    if (!attachment) throw new NotFoundException('File tidak ditemukan');
-    return await this.attachmentRepo.remove(attachment);
+    try {
+      const attachment = await this.attachmentRepo.findOne({ where: { id } });
+      if (!attachment) throw new NotFoundException('File tidak ditemukan');
+      return await this.attachmentRepo.remove(attachment);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(`Error removing attachment with ID ${id}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat menghapus file');
+    }
   }
 }

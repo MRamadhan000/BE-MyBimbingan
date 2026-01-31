@@ -2,7 +2,8 @@ import {
   Injectable, 
   NotFoundException, 
   BadRequestException, 
-  InternalServerErrorException 
+  InternalServerErrorException,
+  Logger 
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,6 +13,8 @@ import { UpdateGuidanceAgendaDto } from './dto/update-guidance-agenda.dto';
 
 @Injectable()
 export class GuidanceAgendasService {
+  private readonly logger = new Logger(GuidanceAgendasService.name);
+
   constructor(
     @InjectRepository(GuidanceAgenda)
     private readonly agendaRepository: Repository<GuidanceAgenda>,
@@ -37,20 +40,36 @@ export class GuidanceAgendasService {
   }
 
   async findAll(): Promise<GuidanceAgenda[]> {
-    return await this.agendaRepository.find({
-      order: { date: 'DESC', startTime: 'ASC' },
-    });
+    try {
+      return await this.agendaRepository.find({
+        order: { date: 'DESC', startTime: 'ASC' },
+      });
+    } catch (error) {
+      this.logger.error(`Error fetching all guidance agendas: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat mengambil data agenda bimbingan');
+    }
   }
 
   async findByLecturer(lecturerId: string): Promise<GuidanceAgenda[]> {
-    return await this.agendaRepository.find({
-      where: { lecturer: { id: lecturerId } },
-      order: { date: 'DESC' },
-    });
+    try {
+      return await this.agendaRepository.find({
+        where: { lecturer: { id: lecturerId } },
+        order: { date: 'DESC' },
+      });
+    } catch (error) {
+      this.logger.error(`Error fetching guidance agendas for lecturer ${lecturerId}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat mengambil data agenda bimbingan dosen');
+    }
   }
 
   async findOne(id: string): Promise<GuidanceAgenda> {
-    return await this.getAgendaOrThrow(id);
+    try {
+      return await this.getAgendaOrThrow(id);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(`Error fetching guidance agenda with ID ${id}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat mengambil data agenda bimbingan');
+    }
   }
 
   async update(id: string, updateDto: UpdateGuidanceAgendaDto): Promise<GuidanceAgenda> {
@@ -74,8 +93,14 @@ export class GuidanceAgendasService {
   }
 
   async remove(id: string): Promise<void> {
-    const agenda = await this.getAgendaOrThrow(id);
-    await this.agendaRepository.remove(agenda);
+    try {
+      const agenda = await this.getAgendaOrThrow(id);
+      await this.agendaRepository.remove(agenda);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(`Error removing guidance agenda with ID ${id}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat menghapus agenda bimbingan');
+    }
   }
 
   // --- HELPER FUNCTIONS ---

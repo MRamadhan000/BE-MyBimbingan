@@ -39,8 +39,4 @@ export class CreateGuidanceAgendaDto {
   @IsEnum(AgendaStatus)
   @IsOptional()
   status: AgendaStatus;
-
-  @IsUUID()
-  @IsNotEmpty()
-  lecturerId: string;
 }

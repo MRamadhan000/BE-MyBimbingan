@@ -20,14 +20,14 @@ export class GuidanceAgendasService {
     private readonly agendaRepository: Repository<GuidanceAgenda>,
   ) {}
 
-  async create(createDto: CreateGuidanceAgendaDto): Promise<GuidanceAgenda> {
+  async create(createDto: CreateGuidanceAgendaDto, lecturerId: string): Promise<GuidanceAgenda> {
     // Helper untuk validasi input berdasarkan tipe guidance
     this.validateGuidanceTypeDetails(createDto);
 
     try {
       const agenda = this.agendaRepository.create({
         ...createDto,
-        lecturer: { id: createDto.lecturerId },
+        lecturer: { id: lecturerId },
       });
       return await this.agendaRepository.save(agenda);
     } catch (error) {

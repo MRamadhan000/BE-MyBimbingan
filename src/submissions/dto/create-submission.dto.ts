@@ -36,10 +36,6 @@ export class CreateSubmissionDto {
   @IsNotEmpty()
   lecturerId: string;
 
-  @IsUUID('4', { message: 'ID Mahasiswa harus berupa UUID yang valid' })
-  @IsNotEmpty()
-  studentId: string;
-
   /**
    * Jika field ini diisi, berarti submission ini adalah 
    * perbaikan (FIX REVISI) dari submission sebelumnya.

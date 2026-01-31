@@ -31,7 +31,7 @@ export class SubmissionsService {
   // LOGIKA SUBMISSION (Pusat Bimbingan)
   // ==========================================
 
-  async create(dto: CreateSubmissionDto): Promise<Submission> {
+  async create(dto: CreateSubmissionDto, studentId: string): Promise<Submission> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -54,7 +54,7 @@ export class SubmissionsService {
       // 2. Simpan Data Submission
       const submission = this.submissionRepo.create({
         ...dto,
-        student: { id: dto.studentId },
+        student: { id: studentId },
         lecturer: { id: dto.lecturerId },
       });
       const savedSubmission = await queryRunner.manager.save(submission);

@@ -5,16 +5,25 @@ import {
   InternalServerErrorException 
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Student } from './entities/student.entity';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
+import { Submission, SubmissionStatus } from '../submissions/entities/submission.entity';
+import { Enrollment } from '../enrollments/entities/enrollment.entity';
+import { Feedback } from '../submissions/entities/feedback.entity';
 
 @Injectable()
 export class StudentsService {
   constructor(
     @InjectRepository(Student)
     private readonly studentRepository: Repository<Student>,
+    @InjectRepository(Submission)
+    private readonly submissionRepository: Repository<Submission>,
+    @InjectRepository(Enrollment)
+    private readonly enrollmentRepository: Repository<Enrollment>,
+    @InjectRepository(Feedback)
+    private readonly feedbackRepository: Repository<Feedback>,
   ) {}
 
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
@@ -64,5 +73,56 @@ export class StudentsService {
 
   async findByStudentNumber(studentNumber: string): Promise<Student | null> {
     return await this.studentRepository.findOne({ where: { studentNumber } });
+  }
+
+  async getStudentStatistics(studentId: string) {
+    const student = await this.findOne(studentId);
+
+    // Get enrollments for this student
+    const enrollments = await this.enrollmentRepository.find({
+      where: { student: { id: studentId } },
+      relations: ['lecturer'],
+    });
+
+    // Get submissions through enrollments
+    const enrollmentIds = enrollments.map(e => e.id);
+    const submissions = await this.submissionRepository.find({
+      where: enrollmentIds.length > 0 ? { enrollment: { id: In(enrollmentIds) } } : {},
+      relations: ['enrollment'],
+    });
+
+    // Count submissions by status
+    const submissionsByStatus = {
+      pending: submissions.filter(s => s.status === SubmissionStatus.PENDING).length,
+      revision: submissions.filter(s => s.status === SubmissionStatus.REVISION).length,
+      approved: submissions.filter(s => s.status === SubmissionStatus.APPROVED).length,
+    };
+
+    // Get feedbacks for submissions
+    const submissionIds = submissions.map(s => s.id);
+    const feedbacks = submissionIds.length > 0 
+      ? await this.feedbackRepository.find({
+          where: { submission: { id: In(submissionIds) } },
+        })
+      : [];
+
+    return {
+      student: {
+        id: student.id,
+        name: student.name,
+        studentNumber: student.studentNumber,
+        major: student.major,
+      },
+      statistics: {
+        totalEnrollments: enrollments.length,
+        totalSubmissions: submissions.length,
+        submissionsByStatus,
+        totalFeedbacks: feedbacks.length,
+        lecturers: enrollments.map(e => ({
+          id: e.lecturer.id,
+          name: e.lecturer.name,
+        })),
+      },
+    };
   }
 }

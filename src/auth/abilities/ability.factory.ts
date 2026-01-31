@@ -50,6 +50,9 @@ export class AbilityFactory {
   }
 
   private defineStudentAbilities(can: any, cannot: any, user: any) {
+    // Student management - students can read their own data
+    can(Action.Read, Student, { id: user.id });
+
     // Lecturer management - students can read lecturer data
     can(Action.Read, Lecturer);
 
@@ -70,8 +73,7 @@ export class AbilityFactory {
     // Feedback - students can only read feedback on their submissions
     can(Action.Read, Feedback, { 'submission.studentId': user.id });
 
-    // Students cannot access other students' data
-    cannot(Action.Read, Student).because('Students cannot access other students data');
+    // Students cannot access other students' data (already handled by condition above)
   }
 
   private defineLecturerAbilities(can: any, cannot: any, user: any) {

@@ -1,98 +1,262 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# BE MyBimbingan
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend API untuk sistem manajemen bimbingan mahasiswa menggunakan NestJS, PostgreSQL, dan Redis.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🚀 Cara Menjalankan Project
 
-## Description
+### Prerequisites
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Pastikan Anda telah menginstall:
+- [Node.js](https://nodejs.org/) (v18 atau lebih baru)
+- [Docker](https://www.docker.com/) dan Docker Compose
+- [Git](https://git-scm.com/)
 
-## Project setup
+### 1. Clone Repository
 
 ```bash
-$ npm install
+git clone <repository-url>
+cd be-mybimbingan
 ```
 
-## Compile and run the project
+### 2. Install Dependencies
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+### 3. Setup Environment Variables
+
+Project ini memiliki 3 environment yang berbeda:
+
+#### Environment Development (`.env.dev`)
+Untuk pengembangan lokal:
+- PostgreSQL Port: `5435`
+- Database: `mybimbingan_dev`
+- Redis Port: `6379`
+
+#### Environment Staging (`.env.staging`)
+Untuk testing/staging:
+- PostgreSQL Port: `5436`
+- Database: `mybimbingan_staging`
+- Redis Port: `6380`
+
+#### Environment Production (`.env.production`)
+Untuk production:
+- PostgreSQL Port: `5437`
+- Database: `mybimbingan_production`
+- Redis Port: `6381`
+
+### 4. Menjalankan Services dengan Docker Compose
+
+#### 🔧 Development Environment
+
+**Start services:**
+```bash
+docker compose --profile dev --env-file .env.dev up -d
+```
+
+**Stop services:**
+```bash
+docker compose --profile dev --env-file .env.dev down
+```
+
+#### 🧪 Staging Environment
+
+**Start services:**
+```bash
+docker compose --profile staging --env-file .env.staging up -d
+```
+
+**Stop services:**
+```bash
+docker compose --profile staging --env-file .env.staging down
+```
+
+#### 🚀 Production Environment
+
+**Start services:**
+```bash
+docker compose --profile production --env-file .env.production up -d
+```
+
+**Stop services:**
+```bash
+docker compose --profile production --env-file .env.production down
+```
+
+### 5. Setup Database
+
+Setelah services berjalan, setup database dengan commands berikut:
+
+#### Untuk Development Environment
+```bash
+# Set environment variables
+export NODE_ENV=development
+
+# Reset database (drop, sync, dan seed)
+npm run db:reset
+
+# Atau jalankan step by step:
+npm run db:drop    # Hapus database
+npm run db:sync    # Sync schema
+npm run db:seed    # Insert data seed
+```
+
+#### Untuk Environment Lain
+Pastikan environment variables sesuai dengan environment yang digunakan sebelum menjalankan database commands.
+
+### 6. Menjalankan Aplikasi
+
+#### Development Mode
+```bash
+npm run start:dev
+```
+
+#### Debug Mode
+```bash
+npm run start:debug
+```
+
+#### Production Mode
+```bash
+npm run build
+npm run start:prod
+```
+
+## 📦 Services yang Berjalan
+
+Ketika Docker Compose dijalankan, services berikut akan tersedia:
+
+### PostgreSQL Database
+- **Development**: `localhost:5435`
+- **Staging**: `localhost:5436`
+- **Production**: `localhost:5437`
+
+### Redis Cache
+- **Development**: `localhost:6379`
+- **Staging**: `localhost:6380`
+- **Production**: `localhost:6381`
+
+### NestJS Application
+- **Default**: `localhost:3000`
+
+## 🔧 Database Commands
 
 ```bash
-# unit tests
-$ npm run test
+# Reset semua (drop + sync + seed)
+npm run db:reset
 
-# e2e tests
-$ npm run test:e2e
+# Drop database
+npm run db:drop
 
-# test coverage
-$ npm run test:cov
+# Sync database schema
+npm run db:sync
+
+# Seed database dengan sample data
+npm run db:seed
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## 🧪 Testing
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Unit tests
+npm run test
+
+# E2E tests
+npm run test:e2e
+
+# Test coverage
+npm run test:cov
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 📝 Scripts Lainnya
 
-## Resources
+```bash
+# Format code
+npm run format
 
-Check out a few resources that may come in handy when working with NestJS:
+# Lint code
+npm run lint
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# Build application
+npm run build
+```
 
-## Support
+## 🗂️ Struktur Project
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```
+src/
+├── auth/              # Authentication & authorization
+├── database/          # Database scripts & seeders
+├── enrollments/       # Enrollment management
+├── guidance-agendas/  # Guidance agenda management
+├── lecturers/         # Lecturer management
+├── students/          # Student management
+└── submissions/       # Submission management
+```
 
-## Stay in touch
+## 🔒 Environment Variables
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Setiap environment file (`.env.dev`, `.env.staging`, `.env.production`) berisi:
 
-## License
+```bash
+# Database Configuration
+POSTGRES_USER=your_postgres_user
+POSTGRES_PASSWORD=your_postgres_password
+POSTGRES_DB=your_database_name
+POSTGRES_PORT=your_postgres_port
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# Redis Configuration
+REDIS_HOST=localhost
+REDIS_PORT=your_redis_port
+
+# JWT Configuration
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=your_jwt_expiry
+
+# Other configurations...
+```
+
+## 🐳 Docker Commands
+
+```bash
+# Melihat status containers
+docker compose ps
+
+# Melihat logs
+docker compose --profile dev --env-file .env.dev logs
+
+# Melihat logs specific service
+docker compose --profile dev --env-file .env.dev logs postgres
+docker compose --profile dev --env-file .env.dev logs redis
+
+# Remove containers dan volumes
+docker compose --profile dev --env-file .env.dev down -v
+```
+
+## 🚨 Troubleshooting
+
+### Port sudah digunakan
+Jika mengalami error "port already in use", pastikan tidak ada service lain yang menggunakan port yang sama atau ubah port di file environment.
+
+### Database connection error
+1. Pastikan Docker containers berjalan: `docker compose ps`
+2. Pastikan environment variables sudah benar
+3. Pastikan port database tidak terblokir firewall
+
+### Redis connection error
+1. Pastikan Redis container berjalan
+2. Pastikan port Redis sesuai dengan environment
+3. Check Redis logs: `docker compose logs redis`
+
+---
+
+## 📄 API Documentation
+
+Setelah aplikasi berjalan, API documentation tersedia di:
+- **Swagger UI**: `http://localhost:3000/api`
+- **JSON**: `http://localhost:3000/api-json`
+
+---
+
+**Happy Coding! 🎉**

@@ -1,10 +1,12 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+  });
 
   // Mengaktifkan Global Validation Pipe
   app.useGlobalPipes(
@@ -17,6 +19,8 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  await app.listen(3001);
+  const logger = new Logger('Bootstrap');
+  await app.listen(3000);
+  logger.log('🚀 Application is running on: http://localhost:3000');
 }
 bootstrap();

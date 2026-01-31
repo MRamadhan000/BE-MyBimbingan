@@ -2,7 +2,8 @@ import {
   Injectable, 
   NotFoundException, 
   ConflictException, 
-  InternalServerErrorException 
+  InternalServerErrorException,
+  Logger 
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,6 +13,8 @@ import { UpdateLecturerDto } from './dto/update-lecturer.dto';
 
 @Injectable()
 export class LecturersService {
+  private readonly logger = new Logger(LecturersService.name);
+
   constructor(
     @InjectRepository(Lecturer)
     private readonly lecturerRepository: Repository<Lecturer>,
@@ -29,13 +32,24 @@ export class LecturersService {
   }
 
   async findAll(): Promise<Lecturer[]> {
-    return await this.lecturerRepository.find({
-      order: { createdAt: 'DESC' },
-    });
+    try {
+      return await this.lecturerRepository.find({
+        order: { createdAt: 'DESC' },
+      });
+    } catch (error) {
+      this.logger.error(`Error fetching all lecturers: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat mengambil data dosen');
+    }
   }
 
   async findOne(id: string): Promise<Lecturer> {
-    return await this.getLecturerOrThrow(id);
+    try {
+      return await this.getLecturerOrThrow(id);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(`Error fetching lecturer with ID ${id}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat mengambil data dosen');
+    }
   }
 
   async update(id: string, updateLecturerDto: UpdateLecturerDto): Promise<Lecturer> {
@@ -50,7 +64,12 @@ export class LecturersService {
   }
 
   async findByNuptk(nuptk: string): Promise<Lecturer | null> {
-    return await this.lecturerRepository.findOne({ where: { nuptk } });
+    try {
+      return await this.lecturerRepository.findOne({ where: { nuptk } });
+    } catch (error) {
+      this.logger.error(`Error fetching lecturer by NUPTK ${nuptk}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat mengambil data dosen');
+    }
   }
 
   // --- HELPER FUNCTIONS ---

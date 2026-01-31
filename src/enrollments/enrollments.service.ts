@@ -2,7 +2,8 @@ import {
   Injectable, 
   NotFoundException, 
   ConflictException, 
-  InternalServerErrorException 
+  InternalServerErrorException,
+  Logger 
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,6 +12,8 @@ import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 
 @Injectable()
 export class EnrollmentsService {
+  private readonly logger = new Logger(EnrollmentsService.name);
+
   constructor(
     @InjectRepository(Enrollment)
     private readonly enrollmentRepository: Repository<Enrollment>,
@@ -49,18 +52,35 @@ export class EnrollmentsService {
   }
 
   async findAll(): Promise<Enrollment[]> {
-    return await this.enrollmentRepository.find({
-      order: { createdAt: 'DESC' },
-    });
+    try {
+      return await this.enrollmentRepository.find({
+        order: { createdAt: 'DESC' },
+      });
+    } catch (error) {
+      this.logger.error(`Error fetching all enrollments: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat mengambil data pendaftaran');
+    }
   }
 
   async findOne(id: string): Promise<Enrollment> {
-    return await this.getEnrollmentOrThrow(id);
+    try {
+      return await this.getEnrollmentOrThrow(id);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(`Error fetching enrollment with ID ${id}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat mengambil data pendaftaran');
+    }
   }
 
   async remove(id: string): Promise<void> {
-    const enrollment = await this.getEnrollmentOrThrow(id);
-    await this.enrollmentRepository.remove(enrollment);
+    try {
+      const enrollment = await this.getEnrollmentOrThrow(id);
+      await this.enrollmentRepository.remove(enrollment);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      this.logger.error(`Error removing enrollment with ID ${id}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat menghapus data pendaftaran');
+    }
   }
 
   // --- HELPER FUNCTIONS ---

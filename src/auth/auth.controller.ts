@@ -5,10 +5,10 @@ import { CreateStudentDto } from '../students/dto/create-student.dto';
 import { CreateLecturerDto } from '../lecturers/dto/create-lecturer.dto';
 import { StudentLoginDto } from './dto/student-auth.dto';
 import { LecturerLoginDto } from './dto/lecturer-auth.dto';
-import { JwtAuthGuard } from './jwt-auth.guard';
-import { RolesGuard } from './roles.guard';
-import { Roles } from './roles.decorator';
-import { Role } from './role.enum';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { Roles } from './decorators/roles.decorator';
+import { Role } from './enums/role.enum';
 
 @Controller('auth')
 export class AuthController {
@@ -42,6 +42,10 @@ export class AuthController {
     return { message: 'Login successful', data: user };
   }
 
+  @Get('student/me/oke')
+  async getStudentMeE(@Req() req: Request) {
+    return { message: 'Student data retrieved successfully'};
+  }
   @Get('student/me')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.STUDENT)

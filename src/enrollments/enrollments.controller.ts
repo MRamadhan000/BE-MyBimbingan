@@ -8,7 +8,8 @@ import {
   ParseUUIDPipe, 
   HttpCode, 
   HttpStatus,
-  UseGuards
+  UseGuards,
+  Req
 } from '@nestjs/common';
 import { EnrollmentsService } from './enrollments.service';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
@@ -25,30 +26,31 @@ export class EnrollmentsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @CheckPolicies(createEnrollmentPolicy)
-  create(@Body() createEnrollmentDto: CreateEnrollmentDto) {
-    const result = this.enrollmentsService.create(createEnrollmentDto);
+  async create(@Body() createEnrollmentDto: CreateEnrollmentDto, @Req() req: any) {
+    const studentId = req.user.id; // Get student ID from JWT token
+    const result = await this.enrollmentsService.create(createEnrollmentDto.lecturerId, studentId);
     return { message: 'Enrollment created successfully', data: result };
   }
 
   @Get()
   @CheckPolicies(readEnrollmentPolicy)
-  findAll() {
-    const result = this.enrollmentsService.findAll();
+  async findAll() {
+    const result = await this.enrollmentsService.findAll();
     return { message: 'Enrollments retrieved successfully', data: result };
   }
 
   @Get(':id')
   @CheckPolicies(readEnrollmentPolicy)
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    const result = this.enrollmentsService.findOne(id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    const result = await this.enrollmentsService.findOne(id);
     return { message: 'Enrollment retrieved successfully', data: result };
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @CheckPolicies(deleteEnrollmentPolicy)
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    this.enrollmentsService.remove(id);
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
+    await this.enrollmentsService.remove(id);
     return { message: 'Enrollment deleted successfully' };
   }
 }

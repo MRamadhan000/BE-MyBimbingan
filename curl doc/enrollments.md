@@ -13,7 +13,6 @@ Base URL: `http://localhost:3000`
 **Request Body:**
 ```json
 {
-  "studentId": "student-uuid",
   "lecturerId": "lecturer-uuid"
 }
 ```
@@ -24,7 +23,6 @@ curl -X POST http://localhost:3000/enrollments \
   -H "Content-Type: application/json" \
   -b cookies.txt \
   -d '{
-    "studentId": "student-uuid",
     "lecturerId": "lecturer-uuid"
   }'
 ```

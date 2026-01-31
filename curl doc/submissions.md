@@ -24,7 +24,6 @@ curl -X POST http://localhost:3000/submissions \
   -F "description=This is my final project submission" \
   -F "enrollmentId=enrollment-uuid" \
   -F "files=@/path/to/file1.pdf" \
-  -F "files=@/path/to/file2.docx" \
   -b cookies.txt
 ```
 
@@ -132,7 +131,7 @@ curl -X GET http://localhost:3000/submissions/submission-uuid \
 {
   "submissionId": "submission-uuid",
   "content": "Good work, but needs revision",
-  "senderType": "LECTURER"
+  "status": "NEEDS_REVISION"
 }
 ```
 
@@ -144,7 +143,7 @@ curl -X POST http://localhost:3000/submissions/feedbacks \
   -d '{
     "submissionId": "submission-uuid",
     "content": "Good work, but needs revision",
-    "senderType": "LECTURER"
+    "status": "NEEDS_REVISION"
   }'
 ```
 
@@ -153,7 +152,7 @@ curl -X POST http://localhost:3000/submissions/feedbacks \
 {
   "id": "feedback-uuid",
   "content": "Good work, but needs revision",
-  "senderType": "LECTURER",
+  "status": "NEEDS_REVISION",
   "submission": {
     "id": "submission-uuid"
   },
@@ -178,11 +177,10 @@ curl -X GET http://localhost:3000/submissions/submission-uuid/feedbacks \
 [
   {
     "id": "feedback-uuid",
-    "comment": "Good work, but needs revision",
-    "status": "revision",
-    "lecturer": {
-      "id": "lecturer-uuid",
-      "name": "Dr. Jane Smith"
+    "content": "Good work, but needs revision",
+    "status": "NEEDS_REVISION",
+    "submission": {
+      "id": "submission-uuid"
     },
     "createdAt": "2023-01-01T00:00:00.000Z"
   }
@@ -223,8 +221,8 @@ curl -X PATCH http://localhost:3000/submissions/submission-uuid/review \
   "feedbacks": [
     {
       "id": "feedback-uuid",
-      "comment": "Excellent work!",
-      "status": "approved"
+      "content": "Excellent work!",
+      "status": "APPROVED"
     }
   ]
 }

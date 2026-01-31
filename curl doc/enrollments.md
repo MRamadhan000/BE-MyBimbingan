@@ -91,6 +91,51 @@ curl -X GET http://localhost:3000/enrollments \
 }
 ```
 
+## Get My Enrollments
+
+**Endpoint:** `GET /enrollments/my`
+
+**Description:** Get all enrollments for the currently authenticated student.
+
+**Curl Command:**
+```bash
+curl -X GET http://localhost:3000/enrollments/my \
+  -b cookies.txt
+```
+
+**Response (Success):**
+```json
+{
+  "message": "My enrollments retrieved successfully",
+  "data": [
+    {
+      "id": "enrollment-uuid-1",
+      "student": {
+        "id": "current-student-uuid",
+        "name": "Current Student"
+      },
+      "lecturer": {
+        "id": "lecturer-uuid-1",
+        "name": "Dr. Jane Smith"
+      },
+      "createdAt": "2023-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "enrollment-uuid-2",
+      "student": {
+        "id": "current-student-uuid",
+        "name": "Current Student"
+      },
+      "lecturer": {
+        "id": "lecturer-uuid-2",
+        "name": "Dr. John Doe"
+      },
+      "createdAt": "2023-01-02T00:00:00.000Z"
+    }
+  ]
+}
+```
+
 ## Get Enrollment by ID
 
 **Endpoint:** `GET /enrollments/:id`

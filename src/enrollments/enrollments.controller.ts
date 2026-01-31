@@ -39,6 +39,13 @@ export class EnrollmentsController {
     return { message: 'Enrollments retrieved successfully', data: result };
   }
 
+  @Get('my')
+  async findMyEnrollments(@Req() req: any) {
+    const studentId = req.user.id; // Get student ID from JWT token
+    const result = await this.enrollmentsService.findByStudentId(studentId);
+    return { message: 'My enrollments retrieved successfully', data: result };
+  }
+
   @Get(':id')
   @CheckPolicies(readEnrollmentPolicy)
   async findOne(@Param('id', ParseUUIDPipe) id: string) {

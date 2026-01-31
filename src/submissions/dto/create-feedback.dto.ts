@@ -1,9 +1,5 @@
 import { IsString, IsNotEmpty, IsUUID, IsEnum } from 'class-validator';
-
-export enum SenderType {
-  STUDENT = 'STUDENT',
-  LECTURER = 'LECTURER'
-}
+import { FeedbackStatus } from '../entities/feedback.entity';
 
 export class CreateFeedbackDto {
   @IsUUID()
@@ -14,7 +10,7 @@ export class CreateFeedbackDto {
   @IsNotEmpty({ message: 'Komentar tidak boleh kosong' })
   content: string;
 
-  @IsEnum(SenderType)
+  @IsEnum(FeedbackStatus)
   @IsNotEmpty()
-  senderType: SenderType;
+  status: FeedbackStatus;
 }

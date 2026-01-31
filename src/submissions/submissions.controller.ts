@@ -66,9 +66,17 @@ export class SubmissionsController {
     @Param('enrollmentId', ParseUUIDPipe) enrollmentId: string,
     @Req() req: any
   ) {
-    const studentId = req.user.id;
+    const studentId = req.user.id; // Get student ID from JWT token
+    
+    // Service akan memvalidasi:
+    // 1. Enrollment dengan ID tersebut harus ada
+    // 2. Mahasiswa dalam enrollment harus sama dengan user yang login
+    // 3. Ini memastikan mahasiswa hanya bisa akses submission dari enrollment miliknya
     const result = await this.submissionsService.findByEnrollment(enrollmentId, studentId);
-    return { message: 'Submissions retrieved successfully', data: result };
+    return { 
+      message: 'My submissions for this enrollment retrieved successfully', 
+      data: result 
+    };
   }
 
   @Get(':id')

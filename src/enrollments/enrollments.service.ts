@@ -67,6 +67,18 @@ export class EnrollmentsService {
     }
   }
 
+  async findByStudentId(studentId: string): Promise<Enrollment[]> {
+    try {
+      return await this.enrollmentRepository.find({
+        where: { student: { id: studentId } },
+        order: { createdAt: 'DESC' },
+      });
+    } catch (error) {
+      this.logger.error(`Error fetching enrollments for student ${studentId}: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Terjadi kesalahan saat mengambil data pendaftaran Anda');
+    }
+  }
+
   async findOne(id: string): Promise<Enrollment> {
     try {
       return await this.getEnrollmentOrThrow(id);

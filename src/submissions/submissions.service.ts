@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Submission, SubmissionStatus } from './entities/submission.entity';
 import { Attachment } from './entities/attachment.entitiy';
-import { Feedback } from './entities/feedback.entity';
+import { Feedback, FeedbackStatus } from './entities/feedback.entity';
 // import { Enrollment } from '../../enrollments/entities/enrollment.entity';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
@@ -281,7 +281,7 @@ export class SubmissionsService {
 
       const feedback = this.feedbackRepo.create({
         content: dto.content,
-        senderType: dto.senderType,
+        status: dto.status,
         submission: submission,
       });
 
@@ -310,7 +310,7 @@ export class SubmissionsService {
         // 2. Tambahkan Feedback dari Dosen
         const feedback = this.feedbackRepo.create({
           content: comment,
-          senderType: 'LECTURER',
+          status: status === SubmissionStatus.APPROVED ? FeedbackStatus.APPROVED : FeedbackStatus.NEEDS_REVISION,
           submission,
         });
         await manager.save(feedback);

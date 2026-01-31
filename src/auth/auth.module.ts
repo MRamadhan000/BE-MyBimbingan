@@ -17,7 +17,7 @@ import { PoliciesGuard } from './guards/policies.guard';
       secret: process.env.JWT_SECRET || 'your-secret-key',
       signOptions: { expiresIn: '1h' },
     }),
-    StudentsModule,
+    forwardRef(() => StudentsModule),
     forwardRef(() => LecturersModule),
   ],
   controllers: [AuthController],

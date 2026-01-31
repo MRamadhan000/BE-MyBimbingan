@@ -19,13 +19,14 @@ export class EnrollmentsService {
     private readonly enrollmentRepository: Repository<Enrollment>,
   ) {}
 
-  async create(createEnrollmentDto: CreateEnrollmentDto): Promise<Enrollment>  {
+  async create(lecturerId: string, studentId: string): Promise<Enrollment> {
+    this.logger.log(`Attempting to create enrollment for student ${studentId} with lecturer ${lecturerId}`);
     try {
       // Cek apakah mahasiswa sudah mendaftar ke dosen ini sebelumnya (Duplicate Check)
       const existing = await this.enrollmentRepository.findOne({
         where: {
-          student: { id: createEnrollmentDto.studentId },
-          lecturer: { id: createEnrollmentDto.lecturerId },
+          student: { id: studentId },
+          lecturer: { id: lecturerId },
         },
       });
 
@@ -34,19 +35,23 @@ export class EnrollmentsService {
       }
 
       const enrollment = this.enrollmentRepository.create({
-        student: { id: createEnrollmentDto.studentId },
-        lecturer: { id: createEnrollmentDto.lecturerId },
+        student: { id: studentId },
+        lecturer: { id: lecturerId },
       });
 
       return await this.enrollmentRepository.save(enrollment);
     } catch (error) {
-      if (error instanceof ConflictException) throw error;
+      if (error instanceof ConflictException) {
+        this.logger.warn(`Enrollment creation failed - duplicate: student ${studentId} already enrolled with lecturer ${lecturerId}`);
+        throw error;
+      }
       
       // Error 23503: Foreign Key Violation (ID Student/Lecturer tidak ada di tabel asalnya)
       if (error.code === '23503') {
+        this.logger.warn(`Enrollment creation failed - foreign key violation: invalid student ${studentId} or lecturer ${lecturerId}`);
         throw new NotFoundException('Data Mahasiswa atau Dosen tidak ditemukan');
       }
-      console.error(error);
+      this.logger.error(`Enrollment creation failed for student ${studentId} and lecturer ${lecturerId}: ${error.message}`, error.stack);
       throw new InternalServerErrorException('Terjadi kesalahan pada server');
     }
   }

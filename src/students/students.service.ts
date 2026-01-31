@@ -2,10 +2,13 @@ import {
   Injectable, 
   NotFoundException, 
   ConflictException, 
-  InternalServerErrorException 
+  InternalServerErrorException,
+  Inject
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import { Student } from './entities/student.entity';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -24,6 +27,7 @@ export class StudentsService {
     private readonly enrollmentRepository: Repository<Enrollment>,
     @InjectRepository(Feedback)
     private readonly feedbackRepository: Repository<Feedback>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
@@ -76,6 +80,12 @@ export class StudentsService {
   }
 
   async getStudentStatistics(studentId: string) {
+    const cacheKey = `student:stats:${studentId}`;
+    const cachedStats = await this.cacheManager.get(cacheKey);
+    if (cachedStats) {
+      return cachedStats;
+    }
+
     const student = await this.findOne(studentId);
 
     // Get enrollments for this student
@@ -106,7 +116,7 @@ export class StudentsService {
         })
       : [];
 
-    return {
+    const stats = {
       student: {
         id: student.id,
         name: student.name,
@@ -124,5 +134,10 @@ export class StudentsService {
         })),
       },
     };
+
+    // Cache for 5 minutes
+    await this.cacheManager.set(cacheKey, stats, 300000);
+
+    return stats;
   }
 }

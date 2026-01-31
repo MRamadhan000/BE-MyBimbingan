@@ -1,6 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Module, Logger } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-store';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { Student } from './students/entities/student.entity';
@@ -23,6 +25,21 @@ import { AuthModule } from './auth/auth.module';
       envFilePath: '.env.dev',
       isGlobal: true,
     }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async () => {
+        const logger = new Logger('CacheModule');
+        const store = await redisStore({
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT || '6379', 10),
+        });
+        logger.log('✅ Connected to Redis successfully!');
+        return {
+          store,
+          ttl: 300, // 5 minutes default TTL
+        };
+      },
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -33,6 +50,7 @@ import { AuthModule } from './auth/auth.module';
       entities: [Student, Lecturer, Enrollment, GuidanceAgenda, Submission, Feedback, Attachment],
       synchronize: true, // ⚠️ PROD JANGAN true
       logging: true,
+      logger: 'advanced-console',
     }),
     StudentsModule,
     LecturersModule,

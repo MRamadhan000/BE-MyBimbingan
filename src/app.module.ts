@@ -81,6 +81,7 @@ import { AuthModule } from './auth/auth.module';
         logger.log(`🗄️  Connecting to PostgreSQL at ${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}`);
         logger.log(`   Database: ${process.env.POSTGRES_DB}`);
         logger.log(`   User: ${process.env.POSTGRES_USER}`);
+        logger.log(`   Host: ${process.env.POSTGRES_HOST}`);
 
         return {
           type: 'postgres',

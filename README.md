@@ -52,7 +52,7 @@ Untuk production:
 
 **Start services:**
 ```bash
-docker compose --profile dev --env-file .env.dev up -d
+docker compose --profile dev up -d
 ```
 
 **Stop services:**

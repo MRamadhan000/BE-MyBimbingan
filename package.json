@@ -11,6 +11,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
+    "start:staging": "node dist/main",
     "start:prod": "node dist/main",
     "db:reset": "npm run db:drop && npm run db:sync && npm run db:seed",
     "db:drop": "ts-node src/database/scripts/drop-database.ts",

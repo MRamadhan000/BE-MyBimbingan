@@ -30,6 +30,7 @@ import { AuthModule } from './auth/auth.module';
     /**
      * =============================
      * ENV CONFIG
+     * Using: .env.${process.env.NODE_ENV || 'dev'} or .env.dev as fallback
      * =============================
      */
     ConfigModule.forRoot({
@@ -49,6 +50,7 @@ import { AuthModule } from './auth/auth.module';
       isGlobal: true,
       useFactory: async () => {
         const logger = new Logger('Redis');
+        logger.log(`🔴 Connecting to Redis at ${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`);
 
         const store = await redisStore({
           socket: {
@@ -73,25 +75,34 @@ import { AuthModule } from './auth/auth.module';
      * POSTGRES (TYPEORM)
      * =============================
      */
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.POSTGRES_HOST,
-      port: Number(process.env.POSTGRES_PORT),
-      username: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      database: process.env.POSTGRES_DB,
-      entities: [
-        Student,
-        Lecturer,
-        Enrollment,
-        GuidanceAgenda,
-        Submission,
-        Feedback,
-        Attachment,
-      ],
-      synchronize: true, // ❌ PROD HARUS FALSE
-      logging: true,
-      logger: 'advanced-console',
+    TypeOrmModule.forRootAsync({
+      useFactory: async () => {
+        const logger = new Logger('Database');
+        logger.log(`🗄️  Connecting to PostgreSQL at ${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}`);
+        logger.log(`   Database: ${process.env.POSTGRES_DB}`);
+        logger.log(`   User: ${process.env.POSTGRES_USER}`);
+
+        return {
+          type: 'postgres',
+          host: process.env.POSTGRES_HOST,
+          port: Number(process.env.POSTGRES_PORT),
+          username: process.env.POSTGRES_USER,
+          password: process.env.POSTGRES_PASSWORD,
+          database: process.env.POSTGRES_DB,
+          entities: [
+            Student,
+            Lecturer,
+            Enrollment,
+            GuidanceAgenda,
+            Submission,
+            Feedback,
+            Attachment,
+          ],
+          synchronize: true, // ❌ PROD HARUS FALSE
+          logging: true,
+          logger: 'advanced-console',
+        };
+      },
     }),
 
     /**

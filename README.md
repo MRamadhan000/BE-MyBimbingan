@@ -244,16 +244,63 @@ npm run start:prod
 
 ## 🧪 Testing
 
-```bash
-# Unit tests
-npm run test
+This project uses Jest for unit and e2e tests. Below are common commands and examples for running tests locally.
 
+### Run all unit tests
+```bash
+npm run test
+```
+
+### Run tests for a specific folder or file
+- Run all tests under a folder (e.g., `auth` module):
+```bash
+npm test -- src/auth
+```
+- Run a single spec file:
+```bash
+npm test -- src/auth/auth.service.spec.ts
+```
+- If you want more verbose output or to avoid failing when there are no matching tests, add flags:
+```bash
+npm test -- src/auth --verbose --passWithNoTests
+```
+
+### Run tests by name (filter)
+```bash
+# Run tests whose names match the provided pattern
+npm test -- -t "validate student user"
+```
+
+### Watch mode (auto-run on file changes)
+```bash
+npm run test:watch
+```
+
+### Running with coverage report
+```bash
+npm run test:cov
+```
+
+### Debugging tests
+```bash
+npm run test:debug
+# or run a single test file in band (useful for debugging):
+npx jest src/auth/auth.service.spec.ts --runInBand --runTestsByPath
+```
+
+### Tips
+- Use `--passWithNoTests` when running a folder that might have no tests yet to prevent Jest from exiting with a non-zero code.
+- Use `-t` or `--testNamePattern` to run tests matching a name substring.
+- Combine flags (e.g., `--verbose`, `--runInBand`) depending on your debugging needs.
+
+```bash
 # E2E tests
 npm run test:e2e
 
-# Test coverage
+# Test coverage (alternative)
 npm run test:cov
 ```
+
 
 ## 📝 Scripts Lainnya
 

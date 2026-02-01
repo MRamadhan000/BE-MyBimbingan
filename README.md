@@ -24,71 +24,193 @@ cd be-mybimbingan
 npm install
 ```
 
-### 3. Setup Environment Variables
+## 🐳 Docker Setup dengan 3 Environment Profiles
 
-Project ini memiliki 3 environment yang berbeda:
+Project ini menggunakan Docker Compose dengan 3 profile yang berbeda:
 
-#### Environment Development (`.env.dev`)
-Untuk pengembangan lokal:
-- PostgreSQL Port: `5435`
-- Database: `mybimbingan_dev`
-- Redis Port: `6379`
+### 📋 Environment Profiles
+1. **dev** - Development environment
+2. **staging** - Staging environment  
+3. **production** - Production environment
 
-#### Environment Staging (`.env.staging`)
-Untuk testing/staging:
-- PostgreSQL Port: `5436`
-- Database: `mybimbingan_staging`
-- Redis Port: `6380`
+### 🔧 Environment Configuration
 
-#### Environment Production (`.env.production`)
-Untuk production:
-- PostgreSQL Port: `5437`
-- Database: `mybimbingan_production`
-- Redis Port: `6381`
+#### Untuk Local Development (Running di laptop/host)
 
-### 4. Menjalankan Services dengan Docker Compose
+Jika Anda menjalankan aplikasi di host machine (bukan di container), gunakan konfigurasi berikut:
 
-#### 🔧 Development Environment
-
-**Start services:**
+**`.env.dev` (Local):**
 ```bash
+# ===== APP =====
+NODE_ENV=dev
+JWT_SECRET=dev-secret-key
+
+# ===== POSTGRES =====
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=password
+POSTGRES_DB=mybimbingan_dev
+POSTGRES_PORT=5435
+POSTGRES_HOST=localhost
+
+# ===== REDIS =====
+REDIS_HOST=localhost
+REDIS_PORT=6379
+```
+
+#### Untuk Container Development (Running di Docker)
+
+Jika aplikasi berjalan di dalam container, gunakan nama service sebagai host:
+
+**`.env.dev` (Container):**
+```bash
+# ===== APP =====
+NODE_ENV=dev
+JWT_SECRET=dev-secret-key
+
+# ===== POSTGRES =====
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=password
+POSTGRES_DB=mybimbingan_dev
+POSTGRES_PORT=5432
+POSTGRES_HOST=postgres-dev
+
+# ===== REDIS =====
+REDIS_HOST=redis-dev
+REDIS_PORT=6379
+```
+
+### 🔧 Development Environment Setup
+
+```bash
+# 1. Build containers
+docker compose --profile dev build
+
+# 2. Start services (detached mode)
 docker compose --profile dev up -d
+
+# 3. Check running containers
+docker ps
+
+# 4. Stop services
+docker compose --profile dev down
+
+# 5. Reset/Clean setup (remove containers, volumes, networks)
+docker compose --profile dev down -v --rmi all
+docker system prune -f
 ```
 
-**Stop services:**
+### 🧪 Staging Environment Setup
+
 ```bash
-docker compose --profile dev --env-file .env.dev down
+# 1. Build staging containers
+docker compose --profile staging build
+
+# 2. Start staging services
+docker compose --profile staging up -d
+
+# 3. Stop staging services
+docker compose --profile staging down
+
+# 4. Reset staging setup
+docker compose --profile staging down -v --rmi all
 ```
 
-#### 🧪 Staging Environment
+### 🚀 Production Environment Setup
 
-**Start services:**
 ```bash
-docker compose --profile staging --env-file .env.staging up -d
+# 1. Build production containers
+docker compose --profile production build
+
+# 2. Start production services
+docker compose --profile production up -d
+
+# 3. Stop production services
+docker compose --profile production down
+
+# 4. Reset production setup
+docker compose --profile production down -v --rmi all
 ```
 
-**Stop services:**
+## 📦 Services dan Port Mapping
+
+| Environment | Service | Container Port | Host Port | Database |
+|-------------|---------|----------------|-----------|----------|
+| **Dev** | PostgreSQL | 5432 | 5435 | `mybimbingan_dev` |
+| **Dev** | Redis | 6379 | 6379 | - |
+| **Dev** | Backend | 3000 | 3000 | - |
+| **Staging** | PostgreSQL | 5432 | 5436 | `mybimbingan_staging` |
+| **Staging** | Redis | 6379 | 6380 | - |
+| **Staging** | Backend | 3000 | 3001 | - |
+| **Production** | PostgreSQL | 5432 | 5437 | `mybimbingan_prod` |
+| **Production** | Redis | 6379 | 6381 | - |
+| **Production** | Backend | 3000 | 3002 | - |
+
+### Akses Aplikasi
+- **Development**: `http://localhost:3000`
+- **Staging**: `http://localhost:3001` 
+- **Production**: `http://localhost:3002`
+
+## 🔧 Docker Management Commands
+
+### Monitoring & Logging
+
 ```bash
-docker compose --profile staging --env-file .env.staging down
+# Lihat status semua containers
+docker ps
+
+# Lihat logs aplikasi
+docker compose --profile dev logs backend-dev -f
+docker compose --profile staging logs backend-staging -f
+
+# Lihat logs database
+docker compose --profile dev logs postgres-dev -f
+
+# Lihat logs redis
+docker compose --profile dev logs redis-dev -f
+
+# Lihat status services
+docker compose --profile dev ps
 ```
 
-#### 🚀 Production Environment
+### Troubleshooting & Reset
 
-**Start services:**
 ```bash
-docker compose --profile production --env-file .env.production up -d
+# Restart services
+docker compose --profile dev restart
+
+# Rebuild tanpa cache
+docker compose --profile dev build --no-cache
+
+# Stop dan remove containers + volumes
+docker compose --profile dev down -v
+
+# Reset lengkap (containers + images + volumes + networks)
+docker compose --profile dev down -v --rmi all
+docker system prune -f
+
+# Hapus semua Docker data (HATI-HATI!)
+docker system prune -a -f --volumes
 ```
 
-**Stop services:**
+### Database Commands
+
 ```bash
-docker compose --profile production --env-file .env.production down
+# Masuk ke container database
+docker exec -it mybimbingan-postgres-dev psql -U postgres -d mybimbingan_dev
+
+# Backup database
+docker exec mybimbingan-postgres-dev pg_dump -U postgres mybimbingan_dev > backup.sql
+
+# Restore database  
+docker exec -i mybimbingan-postgres-dev psql -U postgres mybimbingan_dev < backup.sql
 ```
 
-### 5. Setup Database
+## 🛠️ Local Development Commands
+
+### Setup Database
 
 Setelah services berjalan, setup database dengan commands berikut:
 
-#### Untuk Development Environment
 ```bash
 # Set environment variables
 export NODE_ENV=development
@@ -102,10 +224,7 @@ npm run db:sync    # Sync schema
 npm run db:seed    # Insert data seed
 ```
 
-#### Untuk Environment Lain
-Pastikan environment variables sesuai dengan environment yang digunakan sebelum menjalankan database commands.
-
-### 6. Menjalankan Aplikasi
+### Menjalankan Aplikasi
 
 #### Development Mode
 ```bash
@@ -121,39 +240,6 @@ npm run start:debug
 ```bash
 npm run build
 npm run start:prod
-```
-
-## 📦 Services yang Berjalan
-
-Ketika Docker Compose dijalankan, services berikut akan tersedia:
-
-### PostgreSQL Database
-- **Development**: `localhost:5435`
-- **Staging**: `localhost:5436`
-- **Production**: `localhost:5437`
-
-### Redis Cache
-- **Development**: `localhost:6379`
-- **Staging**: `localhost:6380`
-- **Production**: `localhost:6381`
-
-### NestJS Application
-- **Default**: `localhost:3000`
-
-## 🔧 Database Commands
-
-```bash
-# Reset semua (drop + sync + seed)
-npm run db:reset
-
-# Drop database
-npm run db:drop
-
-# Sync database schema
-npm run db:sync
-
-# Seed database dengan sample data
-npm run db:seed
 ```
 
 ## 🧪 Testing
@@ -195,45 +281,6 @@ src/
 └── submissions/       # Submission management
 ```
 
-## 🔒 Environment Variables
-
-Setiap environment file (`.env.dev`, `.env.staging`, `.env.production`) berisi:
-
-```bash
-# Database Configuration
-POSTGRES_USER=your_postgres_user
-POSTGRES_PASSWORD=your_postgres_password
-POSTGRES_DB=your_database_name
-POSTGRES_PORT=your_postgres_port
-
-# Redis Configuration
-REDIS_HOST=localhost
-REDIS_PORT=your_redis_port
-
-# JWT Configuration
-JWT_SECRET=your_jwt_secret
-JWT_EXPIRES_IN=your_jwt_expiry
-
-# Other configurations...
-```
-
-## 🐳 Docker Commands
-
-```bash
-# Melihat status containers
-docker compose ps
-
-# Melihat logs
-docker compose --profile dev --env-file .env.dev logs
-
-# Melihat logs specific service
-docker compose --profile dev --env-file .env.dev logs postgres
-docker compose --profile dev --env-file .env.dev logs redis
-
-# Remove containers dan volumes
-docker compose --profile dev --env-file .env.dev down -v
-```
-
 ## 🚨 Troubleshooting
 
 ### Port sudah digunakan
@@ -247,15 +294,23 @@ Jika mengalami error "port already in use", pastikan tidak ada service lain yang
 ### Redis connection error
 1. Pastikan Redis container berjalan
 2. Pastikan port Redis sesuai dengan environment
-3. Check Redis logs: `docker compose logs redis`
+3. Check Redis logs: `docker compose logs redis-dev`
+
+### Crypto Error (Node.js v18)
+Jika mendapat error `crypto is not defined`, upgrade ke Node.js v20:
+```bash
+# Update Dockerfile
+FROM node:20-alpine
+```
 
 ---
 
 ## 📄 API Documentation
 
 Setelah aplikasi berjalan, API documentation tersedia di:
-- **Swagger UI**: `http://localhost:3000/api`
-- **JSON**: `http://localhost:3000/api-json`
+- **Development Swagger UI**: `http://localhost:3000/api`
+- **Staging Swagger UI**: `http://localhost:3001/api`
+- **Production Swagger UI**: `http://localhost:3002/api`
 
 ---
 

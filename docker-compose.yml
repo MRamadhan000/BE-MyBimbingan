@@ -1,36 +1,159 @@
-version: '3.9'
-
 services:
-  postgres:
+  # ======================
+  # DATABASE DEV
+  # ======================
+  postgres-dev:
     image: postgres:16
-    container_name: mybimbingan-postgres
+    container_name: mybimbingan-postgres-dev
     restart: unless-stopped
+    env_file:
+      - .env.dev
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mybimbingan_dev
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "5435:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    profiles:
-      - dev
-      - staging
-      - production
+      - postgres_dev_data:/var/lib/postgresql/data
+    profiles: [dev]
 
-  redis:
+  # ======================
+  # DATABASE STAGING
+  # ======================
+  postgres-staging:
+    image: postgres:16
+    container_name: mybimbingan-postgres-staging
+    restart: unless-stopped
+    env_file:
+      - .env.staging
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mybimbingan_staging
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+    profiles: [staging]
+
+  # ======================
+  # DATABASE PRODUCTION
+  # ======================
+  postgres-production:
+    image: postgres:16
+    container_name: mybimbingan-postgres-production
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: STRONG_PASSWORD_HERE
+      POSTGRES_DB: mybimbingan_prod
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres_production_data:/var/lib/postgresql/data
+    profiles: [production]
+
+  # ======================
+  # REDIS DEV
+  # ======================
+  redis-dev:
     image: redis:7-alpine
-    container_name: mybimbingan-redis
+    container_name: mybimbingan-redis-dev
     restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
-    profiles:
-      - dev
-      - staging
-      - production
+      - redis_dev_data:/data
+    profiles: [dev]
+
+  # ======================
+  # REDIS STAGING
+  # ======================
+  redis-staging:
+    image: redis:7-alpine
+    container_name: mybimbingan-redis-staging
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_staging_data:/data
+    profiles: [staging]
+
+  # ======================
+  # REDIS PRODUCTION
+  # ======================
+  redis-production:
+    image: redis:7-alpine
+    container_name: mybimbingan-redis-production
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis_production_data:/data
+    profiles: [production]
+
+  # ======================
+  # BACKEND DEV
+  # ======================
+  backend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mybimbingan-backend-dev
+    env_file:
+      - .env.dev
+    ports:
+      - "3000:3000"
+    command: npm run start:dev
+    depends_on:
+      - postgres-dev
+      - redis-dev
+    profiles: [dev]
+
+  # ======================
+  # BACKEND STAGING
+  # ======================
+  backend-staging:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mybimbingan-backend-staging
+    env_file:
+      - .env.staging
+    ports:
+      - "3001:3000"
+    command: npm run start:staging
+    depends_on:
+      - postgres-staging
+      - redis-staging
+    profiles: [staging]
+    restart: unless-stopped
+
+  # ======================
+  # BACKEND PRODUCTION
+  # ======================
+  backend-production:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mybimbingan-backend-production
+    env_file:
+      - .env.production
+    ports:
+      - "3002:3000"
+    command: npm run start:prod
+    depends_on:
+      - postgres-production
+      - redis-production
+    profiles: [production]
 
 volumes:
-  postgres_data:
-  redis_data:
+  postgres_dev_data:
+  postgres_staging_data:
+  postgres_production_data:
+  redis_dev_data:
+  redis_staging_data:
+  redis_production_data:

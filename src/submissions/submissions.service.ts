@@ -308,9 +308,13 @@ export class SubmissionsService {
         await manager.save(submission);
 
         // 2. Tambahkan Feedback dari Dosen
+        const feedbackStatus = status === SubmissionStatus.APPROVED 
+          ? FeedbackStatus.APPROVED 
+          : FeedbackStatus.NEEDS_REVISION;
+          
         const feedback = this.feedbackRepo.create({
           content: comment,
-          status: status === SubmissionStatus.APPROVED ? FeedbackStatus.APPROVED : FeedbackStatus.NEEDS_REVISION,
+          status: feedbackStatus,
           submission,
         });
         await manager.save(feedback);

@@ -21,6 +21,12 @@ export class Student {
   @Column()
   password: string;
 
+  @Column()
+  email: string;
+
+  @Column({ nullable: true })
+  address: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

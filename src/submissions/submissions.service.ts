@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Submission, SubmissionStatus } from './entities/submission.entity';
-import { Attachment } from './entities/attachment.entitiy';
+import { Attachment } from './entities/attachment.entity';
 import { Feedback, FeedbackStatus } from './entities/feedback.entity';
 // import { Enrollment } from '../../enrollments/entities/enrollment.entity';
 import { CreateSubmissionDto } from './dto/create-submission.dto';

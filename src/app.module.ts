@@ -15,7 +15,7 @@ import { Enrollment } from './enrollments/entities/enrollment.entity';
 import { GuidanceAgenda } from './guidance-agendas/entities/guidance-agenda.entity';
 import { Submission } from './submissions/entities/submission.entity';
 import { Feedback } from './submissions/entities/feedback.entity';
-import { Attachment } from './submissions/entities/attachment.entitiy';
+import { Attachment } from './submissions/entities/attachment.entity';
 
 // modules
 import { StudentsModule } from './students/students.module';
@@ -99,7 +99,7 @@ import { AuthModule } from './auth/auth.module';
             Feedback,
             Attachment,
           ],
-          synchronize: true, // ❌ PROD HARUS FALSE
+          synchronize: false, // ❌ PROD HARUS FALSE
           logging: true,
           logger: 'advanced-console',
         };

@@ -3,7 +3,7 @@ import { SubmissionsService } from './submissions.service';
 import { SubmissionsController } from './submissions.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Submission } from './entities/submission.entity';
-import { Attachment } from './entities/attachment.entitiy';
+import { Attachment } from './entities/attachment.entity';
 import { Feedback } from './entities/feedback.entity';
 // import { Enrollment } from '../enrollments/entities/enrollment.entity';
 import { AuthModule } from '../auth/auth.module';

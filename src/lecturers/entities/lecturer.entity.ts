@@ -21,6 +21,12 @@ export class Lecturer {
   @Column()
   password: string;
 
+  @Column({ unique: true })
+  email: string;
+
+  @Column({ nullable: true })
+  phoneNumber: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

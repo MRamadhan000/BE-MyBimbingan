@@ -8,7 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Enrollment } from '../../enrollments/entities/enrollment.entity';
-import { Attachment } from './attachment.entitiy';
+import { Attachment } from './attachment.entity';
 import { Feedback } from './feedback.entity';
 
 export enum SubmissionStatus {
